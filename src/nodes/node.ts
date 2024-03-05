@@ -40,9 +40,12 @@ export async function node(
             nodeState.x = "?";
           }
           nodeState.decided = F < Math.ceil(N / 2);
+          
         }
+
       }
     }
+
   };
 
 
