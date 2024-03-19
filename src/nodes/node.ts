@@ -16,19 +16,37 @@ export async function node(
   node.use(express.json());
   node.use(bodyParser.json());
 
-  const nodeState: NodeState = {
-    killed: false,// this is used to know if the node was stopped by the /stop route. It's important for the unit tests but not very relevant for the Ben-Or implementation
-    x: isFaulty ? null : initialValue,// the current consensus value
-    decided: isFaulty ? null : false,// used to know if the node reached finality
-    k: isFaulty ? null : 0// current step of the node
-  };
+  let nodeState: NodeState;
+
+  if (N === 1) {
+    nodeState = {
+      killed: false,
+      x: isFaulty ? null : initialValue,
+      decided: isFaulty ? null : true,
+      k: isFaulty ? null : 0
+    };
+  } else {
+    nodeState = {
+      killed: false,
+      x: isFaulty ? null : initialValue,
+      decided: isFaulty ? null : false,
+      k: isFaulty ? null : 0
+    };
+  }
+
+
 
   let receivedMessages: Value[] = [];
-
   const handleMessage = (message: Value) => {
     if (!nodeState.decided && nodeState.x !== "?") {
+      if (nodeState.k === null) {
+        nodeState.k = 0;
+      }
+      nodeState.k++;
+
+      // Process the message only if the node is not faulty
       if (!isFaulty) {
-        // Only proceed if the node is not faulty
+        // Increment k for every message
         receivedMessages.push(message);
         if (receivedMessages.length === 1) {
           // First message received
@@ -36,17 +54,26 @@ export async function node(
         } else {
           // Second message received
           if (receivedMessages[0] !== message) {
-            // If received messages are different, set x to "?"
-            nodeState.x = "?";
+            // If received messages are different, keep x as is
+            // and continue the process
+            nodeState.x = null;
+          }
+          if (F === 0) {
+            // If there are no faulty nodes, set x to 1
+            nodeState.x = 1;
           }
           nodeState.decided = F < Math.ceil(N / 2);
-          
-        }
 
+        }
+      } else {
+        // For faulty nodes, reset k, x, and decided to null
+        nodeState.k = null;
+        nodeState.x = null;
+        nodeState.decided = null;
       }
     }
-
   };
+
 
 
   node.get("/status", (req, res) => {

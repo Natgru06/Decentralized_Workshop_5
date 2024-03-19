@@ -4,9 +4,9 @@ import { Value } from "./types";
 import { delay } from "./utils";
 
 async function main() {
-  const faultyArray = [false, false, false, false, true];
+  const faultyArray = [false];
 
-  const initialValues: Value[] = [1, 1, 1, 0, 0];
+  const initialValues: Value[] = [1];
   if (initialValues.length !== faultyArray.length)
     throw new Error("Lengths don't match");
 
