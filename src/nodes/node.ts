@@ -39,10 +39,7 @@ export async function node(
   let receivedMessages: Value[] = [];
   const handleMessage = (message: Value) => {
     if (!nodeState.decided && nodeState.x !== "?") {
-      if (nodeState.k === null) {
-        nodeState.k = 0;
-      }
-      nodeState.k++;
+
 
       // Process the message only if the node is not faulty
       if (!isFaulty) {
@@ -51,6 +48,7 @@ export async function node(
         if (receivedMessages.length === 1) {
           // First message received
           nodeState.x = message;
+
         } else {
           // Second message received
           if (receivedMessages[0] !== message) {
@@ -58,6 +56,11 @@ export async function node(
             // and continue the process
             nodeState.x = null;
           }
+          if (nodeState.k === null) {
+            nodeState.k = 0;
+          }
+          nodeState.k++;
+
           if (F === 0) {
             // If there are no faulty nodes, set x to 1
             nodeState.x = 1;
